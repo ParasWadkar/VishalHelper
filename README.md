@@ -1,6 +1,6 @@
 # LexiAI – AI Writing Assistant 🧠
 
-Hey Vishal! So Paras made this AI writing assistant that's basically smarter than both of us combined (which honestly isn't saying much). It fixes your grammar, rewrites stuff professionally, detects your passive-aggressive tone, and more — all powered by actual Claude AI. Here's everything you need to get it running, written in a way that assumes you've never touched a terminal in your life (which is probably true).
+Hey Vishal! So Paras made this AI writing assistant that's basically smarter than both of us combined (which honestly isn't saying much). It fixes your grammar, rewrites stuff professionally, detects your passive-aggressive tone, and more — all powered by Google Gemini AI, which is FREE (yes, actually free, not "free for 7 days then we charge your card" free). Here's everything you need to get it running, written in a way that assumes you've never touched a terminal in your life (which is probably true).
 
 ---
 
@@ -14,7 +14,7 @@ Before you even THINK about cloning this repo, make sure you have these installe
 | Node.js | 18+ | https://nodejs.org | JavaScript but make it slightly less painful |
 | Git | Any | https://git-scm.com | For downloading the repo without unzipping a .zip like an animal |
 
-You'll also need a **free Anthropic API key** — the magic ingredient that makes this whole thing not just a fancy text box (it really is just a fancy text box without it). Get one at https://console.anthropic.com. Sign up, go to API Keys, click Create. It's free to start and you'll use approximately 4 credits testing this app.
+You'll also need a **free Google Gemini API key** — the magic ingredient that makes this whole thing not just a fancy text box (it really is just a fancy text box without it). The best part? It's genuinely free with no credit card required. Get one at https://aistudio.google.com/apikey. Sign up with your Google account, click "Create API Key", done. You get 15 requests/minute and 1 million tokens/day for free. (That's a LOT of grammar fixing. You'd have to be writing a novel to hit the limit.)
 
 ---
 
@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 This downloads about 47 packages you'll never look at. (It's actually just 5 packages. The 47 are their dependencies. Modern software development.)
 
-Now create your secret `.env` file. Don't share this file with anyone, not even your mum. (Seriously, the API key in here costs money if someone spams it.)
+Now create your secret `.env` file. Don't share this file with anyone, not even your mum. (Seriously, even though Gemini is free, someone could still spam it under your account and get it rate-limited.)
 
 ```bash
 # On Mac/Linux:
@@ -52,23 +52,23 @@ cp .env.example .env
 copy .env.example .env
 ```
 
-Open `.env` in any text editor (Notepad is fine, we don't judge here) (we absolutely judge) and replace `your_api_key_here` with your real key:
+Open `.env` in any text editor (Notepad is fine, we don't judge here) (we absolutely judge) and replace `your_gemini_api_key_here` with your real key:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx
+GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxx
 ```
 
 Now, the moment of truth. Start the backend:
 
 ```bash
 # Mac/Linux:
-ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx uvicorn main:app --reload
+GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxx uvicorn main:app --reload
 
 # Windows (Command Prompt):
-set ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx && uvicorn main:app --reload
+set GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxx && uvicorn main:app --reload
 
 # Windows (PowerShell):
-$env:ANTHROPIC_API_KEY="sk-ant-xxxxxxxxxxxxxxxx"; uvicorn main:app --reload
+$env:GEMINI_API_KEY="AIzaSyxxxxxxxxxxxxxxxx"; uvicorn main:app --reload
 ```
 
 You should see: `Uvicorn running on http://127.0.0.1:8000` — this means it worked and you are now a backend developer. Put it on your CV. (Please don't.)
@@ -99,7 +99,7 @@ Go to your browser (Chrome, Firefox, Edge, even Safari if you're a brave soul) a
 http://localhost:5173
 ```
 
-Boom. LexiAI. You're welcome. Paras is welcome. Claude AI is welcome. (It took a non-trivial amount of effort to build this, so do appreciate it for at least 30 seconds.)
+Boom. LexiAI. You're welcome. Paras is welcome. Google Gemini is welcome (and free, did we mention free). (It took a non-trivial amount of effort to build this, so do appreciate it for at least 30 seconds.)
 
 ---
 
@@ -126,7 +126,7 @@ For the curious (or those who broke something and need to find where):
 ```
 VishalHelper/
 ├── backend/
-│   ├── main.py              # Where the AI magic actually happens (FastAPI + Claude SDK)
+│   ├── main.py              # Where the AI magic actually happens (FastAPI + Gemini SDK)
 │   ├── requirements.txt     # List of things Python needs to function (dependencies)
 │   └── .env.example         # Template for your secret API key (don't commit the real .env)
 └── frontend/
@@ -151,7 +151,7 @@ Because something will go wrong. It always does. (This is not a criticism of you
 
 **"Cannot connect to backend" / nothing works**
 - Is the backend terminal still running? Did you close it? Why did you close it? (Keep the uvicorn process alive in its own terminal window)
-- Is your API key correct? No spaces, no quotes around it in the env file. (Copy-paste it directly from the Anthropic console)
+- Is your API key correct? No spaces, no quotes around it in the env file. (Copy-paste it directly from https://aistudio.google.com/apikey)
 
 **`npm install` fails and you want to cry**
 - Check Node version: `node --version` — needs to be 18 or higher (Node 16 and below are too old)
@@ -167,4 +167,4 @@ Because something will go wrong. It always does. (This is not a criticism of you
 
 ---
 
-Built by Paras (with Claude AI doing 90% of the work, but Paras had the vision) (this is accurate)
+Built by Paras • Powered by Google Gemini AI (free forever, unlike some other AIs we won't name) (this is accurate)

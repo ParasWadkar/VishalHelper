@@ -5,7 +5,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import anthropic
+import google.generativeai as genai
+
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 app = FastAPI(title="LexiAI Backend")
 
@@ -15,8 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 MODES = {
     "grammar": "Fix all grammar and spelling errors. Return a JSON object with keys: corrected_text, changes (list of {original, corrected, type}), score (0-100).",
@@ -35,6 +35,11 @@ Rules:
 - score: integer 0-100 representing how much improvement was made (higher = more was fixed)
 - For tone mode, also include tone_detected: a string like "professional", "casual", "formal", "aggressive", etc.
 - Return ONLY JSON, no other text."""
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=SYSTEM_PROMPT,
+)
 
 
 class ProcessRequest(BaseModel):
@@ -70,20 +75,11 @@ async def process_text(req: ProcessRequest):
     instruction = MODES[mode]
 
     try:
-        message = client.messages.create(
-            model="claude-opus-4-7",
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Mode: {mode}\nInstruction: {instruction}\n\nText to process:\n{req.text}",
-                }
-            ],
+        response = model.generate_content(
+            f"Mode: {mode}\nInstruction: {instruction}\n\nText to process:\n{req.text}"
         )
 
-        raw = message.content[0].text.strip()
-        # Strip markdown fences if present
+        raw = response.text.strip()
         if raw.startswith("```"):
             raw = re.sub(r"^```[a-z]*\n?", "", raw)
             raw = re.sub(r"\n?```$", "", raw)
@@ -100,7 +96,6 @@ async def process_text(req: ProcessRequest):
         )
 
     except json.JSONDecodeError:
-        # Fallback if JSON parsing fails
         return ProcessResponse(
             corrected_text=raw if "raw" in dir() else req.text,
             changes=[],
@@ -108,7 +103,7 @@ async def process_text(req: ProcessRequest):
             original_text=req.text,
             mode=mode,
         )
-    except anthropic.APIError as e:
+    except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI API error: {str(e)}")
 
 
@@ -121,19 +116,13 @@ async def process_text_stream(req: ProcessRequest):
     instruction = MODES[mode]
 
     def generate():
-        with client.messages.stream(
-            model="claude-opus-4-7",
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Mode: {mode}\nInstruction: {instruction}\n\nText to process:\n{req.text}",
-                }
-            ],
-        ) as stream:
-            for text in stream.text_stream:
-                yield f"data: {json.dumps({'chunk': text})}\n\n"
+        response = model.generate_content(
+            f"Mode: {mode}\nInstruction: {instruction}\n\nText to process:\n{req.text}",
+            stream=True,
+        )
+        for chunk in response:
+            if chunk.text:
+                yield f"data: {json.dumps({'chunk': chunk.text})}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
